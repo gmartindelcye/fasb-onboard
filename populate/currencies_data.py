@@ -1,4 +1,4 @@
- CURRENCIES ={
+CURRENCIES = {
   "AED": "United Arab Emirates Dirham",
   "AFN": "Afghan Afghani",
   "ALL": "Albanian Lek",
