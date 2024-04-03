@@ -20,16 +20,33 @@ class Country(SQLModel, table=True):
 #     name: str = Field(default=None, unique=True, index=True)
 #     code: str | None = Field(default=None, unique=True, index=True)
 
-class User(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class UserBase(SQLModel):
     username: str = Field(default=None, unique=True, index=True)
-    password: Optional[str] = Field(default=None)
     name: str | None = Field(default=None)
     email: str | None = Field(default=None, unique=True, index=True)
+
+class User(UserBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    password: Optional[str] = Field(default=None)
     token: Optional[str] = Field(default=None)
     is_active: bool = Field(default=True)
     is_superuser: bool = Field(default=False)
     # projects: list["Project"] = Relationship(back_populates="owner")
+
+class UserRead(UserBase):
+    id: int
+
+class UserCreate(UserBase):
+    password: str
+
+class UserPassword(SQLModel):
+    password: str
+
+class UserActive(SQLModel):
+    is_active: bool = Field(default=True)
+
+class UserSuperuser(SQLModel):
+    is_superuser: bool = Field(default=False)
 
 
 # class Project(SQLModel, table=True):

@@ -6,8 +6,9 @@ from sqlmodel import Session, select
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from settings import settings
-from database import get_session
+from database import engine
 from models import User
+from jose import jwt
 
 SECRET_KEY = settings['SECRET_KEY']
 ALGORITHM = settings['ALGORITHM']
@@ -36,17 +37,17 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(username: str, session: Session = Depends(get_session)) -> User:     
-    return session.exec(select(User).where(User.username == username)).first()
+def get_user(username: str) -> User:
+    with Session(engine) as session:
+        return session.exec(select(User).where(User.username == username)).first()
 
 
 def get_authenticated_user(
         username: str, 
         password: str, 
-        session: Session = Depends(get_session)
     ) -> User:
     print(username, password)
-    user = get_user(username, session)
+    user = get_user(username)
     print(user)
     if not user:
         return False
@@ -65,6 +66,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
+def create_user_access_token(username: str) -> str:
+    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
+    return access_token
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
@@ -91,9 +99,3 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 
-if __name__ == "__main__":
-    password = 'secret'
-    hash_password = get_password_hash(password)
-    print(f"password: {password} hash_password: {hash_password}")
-    check = verify_password(password, hash_password)
-    print(f"check: {check}")
