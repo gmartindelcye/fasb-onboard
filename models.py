@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field
 
 
 # class Bank(SQLModel, table=True):
@@ -9,21 +9,29 @@ from sqlmodel import SQLModel, Field, Relationship
 #     name: str = Field(default=None, unique=True, index=True)
 #     code: str | None = Field(default=None, unique=True, index=True)
 
-class Country(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class CountryBase(SQLModel):
     name: str = Field(default=None, unique=True, index=True)
     code: str | None = Field(default=None, unique=True, index=True)
 
+
+class Country(CountryBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
+# class CountryRead(Country):
+#     pass
 
 # class Currency(SQLModel, table=True):
 #     id: int | None = Field(default=None, primary_key=True)
 #     name: str = Field(default=None, unique=True, index=True)
 #     code: str | None = Field(default=None, unique=True, index=True)
 
+
 class UserBase(SQLModel):
     username: str = Field(default=None, unique=True, index=True)
     name: str | None = Field(default=None)
     email: str | None = Field(default=None, unique=True, index=True)
+
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -33,17 +41,22 @@ class User(UserBase, table=True):
     is_superuser: bool = Field(default=False)
     # projects: list["Project"] = Relationship(back_populates="owner")
 
+
 class UserRead(UserBase):
     id: int
+
 
 class UserCreate(UserBase):
     password: str
 
+
 class UserPassword(SQLModel):
     password: str
 
+
 class UserActive(SQLModel):
     is_active: bool = Field(default=True)
+
 
 class UserSuperuser(SQLModel):
     is_superuser: bool = Field(default=False)
@@ -63,7 +76,11 @@ class UserSuperuser(SQLModel):
 #     id: int | None = Field(default=None, primary_key=True)
 #     name: str = Field(default=None, unique=True, index=True)
 #     description: Optional[str] = Field(default=None)
-#     percentage: Decimal = Field(default=Decimal(0.0), max_digits=6, decimal_places=2)
+#     percentage: Decimal = Field(
+#                                 default=Decimal(0.0),
+#                                 max_digits=6,
+#                                 decimal_places=2
+#                           )
 #     account_id: int = Field(default=None, foreign_key="account.id")
 #     account: "Account" = Relationship(back_populates="partners")
 

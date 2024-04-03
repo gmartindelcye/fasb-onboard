@@ -1,9 +1,9 @@
 
-from typing import Optional, List, Annotated
+from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Country
+from models import Country, CountryBase
 from security import oauth2_scheme
 
 
@@ -16,65 +16,84 @@ router = APIRouter(
 
 @router.get("/", response_model=list[Country])
 async def get_countries(
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Session = Depends(get_session)
-    ):
-    countries = await session.exec(select(Country)).scalars().all()
-    return [Country(id=country.id, name=country.name, code=country.code) for country in countries]
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    countries = session.exec(select(Country)).all()
+    return countries
 
 
 @router.post("/", response_model=Country)
 async def create_country(
-        country: Country, 
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Session = Depends(get_session)
-    ):
-    country_exist = session.query(Country).filter(Country.name == country.name).first()
+            country: CountryBase,
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    statement = select(Country).where(Country.name == country.name)
+    country_exist = session.exec(statement).first()
     if country_exist:
         raise HTTPException(status_code=400, detail="Country already exists")
     country = Country(name=country.name, code=country.code)
     session.add(country)
-    await session.commit()
-    await session.refresh(country)
+    session.commit()
+    session.refresh(country)
     return country
 
 
 @router.get("/{country_id}", response_model=Country)
 async def get_country(
-        country_id: int, 
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Session = Depends(get_session)
-    ):
-    country = await session.get(Country, country_id)
+            country_id: int,
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    country = session.get(Country, country_id)
     if not country:
         raise HTTPException(status_code=404, detail="Country not found")
     return country
 
 
-@router.put("/{country_id}")
+@router.patch("/{country_id}")
 async def update_country(
-        country_id: int, 
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Session = Depends(get_session)
-    ):
-    return {"country": country_id}
+            country_id: int,
+            country: CountryBase,
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    db_country = session.get(Country, country_id)
+    if not db_country:
+        raise HTTPException(status_code=404, detail="Country not found")
+    country_data = country.model_dump(exclude_unset=True)
+    for key, value in country_data.items():
+        setattr(db_country, key, value)
+    session.add(db_country)
+    session.commit()
+    session.refresh(db_country)
+    return db_country
 
 
 @router.delete("/{country_id}")
 async def delete_country(
-        country_id: int, 
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Session = Depends(get_session)
-    ):
-    return {"country": country_id}
+            country_id: int,
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    country = session.get(Country, country_id)
+    if not country:
+        raise HTTPException(status_code=404, detail="country not found")
+    session.delete(country)
+    session.commit()
+    return {"ok": True}
 
-@router.get("/populate")
-async def populate_initial_countries():
-    from app.populate.countries import populate_countries
-    countries = get_countries()
+
+@router.get("/admin/populate")
+async def populate_initial_countries(
+            token: Annotated[str, Depends(oauth2_scheme)],
+            session: Session = Depends(get_session)
+          ):
+    from populate.countries import populate_countries
+    countries = session.exec(select(Country)).all()
     if not countries:
         populate_countries()
         return {"message": "Countries populated"}
     else:
         return {"message": "Countries already populated"}
-

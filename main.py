@@ -1,17 +1,13 @@
-from datetime import timedelta
-from fastapi import FastAPI, APIRouter, status, Depends, HTTPException
+from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
 from routes.country import router as country_router
 from routes.user import router as user_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
-from database import get_session
 from models import User
-from security import (oauth2_scheme, Token, TokenData, get_authenticated_user,
-                      ACCESS_TOKEN_EXPIRE_MINUTES, create_user_access_token, 
+from security import (Token, get_authenticated_user,
+                      create_user_access_token,
                       get_current_active_user)
-
 
 
 @asynccontextmanager
@@ -32,9 +28,11 @@ def ping():
 
 
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+async def login_for_access_token(
+            form_data: OAuth2PasswordRequestForm = Depends()
+          ) -> Token:
     user = get_authenticated_user(
-        form_data.username, 
+        form_data.username,
         form_data.password,
     )
     if not user:
@@ -50,9 +48,3 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
-
-
-@app.get("/checkdb")
-async def check_db(session: Session = Depends(get_session)):
-    users = session.exec(select(User)).all()
-    return [user.username for user in users]
