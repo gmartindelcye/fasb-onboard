@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 from pydantic import BaseModel
@@ -45,7 +45,9 @@ def get_authenticated_user(
         password: str, 
         session: Session = Depends(get_session)
     ) -> User:
+    print(username, password)
     user = get_user(username, session)
+    print(user)
     if not user:
         return False
     if not verify_password(password, user.password):

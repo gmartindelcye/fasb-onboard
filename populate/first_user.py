@@ -2,7 +2,7 @@ from sqlmodel import Session, select
 from models import User
 from database import engine
 from settings import settings
-from utils import get_password_hash
+from security import get_password_hash
 
 def create_first_user():
     with Session(engine) as session:

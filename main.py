@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session
+from sqlmodel import Session, select
 from routes.country import router as country_router
 from routes.user import router as user_router
 from contextlib import asynccontextmanager
@@ -55,4 +55,7 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-
+@app.get("/checkdb")
+async def check_db(session: Session = Depends(get_session)):
+    users = session.exec(select(User)).all()
+    return [user.username for user in users]
