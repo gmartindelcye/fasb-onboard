@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from routes.country import router as country_router
 from routes.user import router as user_router
 from routes.currency import router as currency_router
+from routes.bank import router as bank_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
 from models import User
@@ -22,6 +23,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(user_router)
 app.include_router(country_router)
 app.include_router(currency_router)
+app.include_router(bank_router)
 
 
 @app.get("/ping")

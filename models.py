@@ -4,10 +4,14 @@ from decimal import Decimal
 from sqlmodel import SQLModel, Field
 
 
-# class Bank(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(default=None, unique=True, index=True)
-#     code: str | None = Field(default=None, unique=True, index=True)
+class BankBase(SQLModel):
+    name: str = Field(default=None, unique=True, index=True)
+    code: str | None = Field(default=None, unique=True, index=True)
+
+
+class Bank(BankBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
 
 class CountryBase(SQLModel):
     name: str = Field(default=None, unique=True, index=True)

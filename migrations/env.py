@@ -8,7 +8,7 @@ from sqlmodel import SQLModel
 from alembic import context
 
 from database import DATABASE_URL
-from models import Country, User, Currency
+from models import Country, User, Currency, Bank
 
 config = context.config
 config.set_main_option('sqlalchemy.url', DATABASE_URL)
