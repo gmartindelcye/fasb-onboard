@@ -21,10 +21,14 @@ class Country(CountryBase, table=True):
 # class CountryRead(Country):
 #     pass
 
-# class Currency(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(default=None, unique=True, index=True)
-#     code: str | None = Field(default=None, unique=True, index=True)
+class CurrencyBase(SQLModel):
+    name: str = Field(default=None, unique=True, index=True)
+    code: str | None = Field(default=None, unique=True, index=True)
+
+
+class Currency(CurrencyBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
 
 
 class UserBase(SQLModel):
