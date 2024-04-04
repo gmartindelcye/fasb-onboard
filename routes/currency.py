@@ -94,6 +94,6 @@ async def populate_initial_currencies(
     currencies = session.exec(select(Currency)).all()
     if not currencies:
         populate_currencies()
-        return {"message": "Countries populated"}
+        return {"message": "Currencies populated"}
     else:
-        return {"message": "Countries already populated"}
+        return {"message": "Currencies already populated"}
