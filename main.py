@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from routes.country import router as country_router
@@ -6,7 +7,7 @@ from routes.currency import router as currency_router
 from routes.bank import router as bank_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
-from models import User
+from models import User, UserBase
 from security import (Token, get_authenticated_user,
                       create_user_access_token,
                       get_current_active_user)
@@ -45,10 +46,15 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_user_access_token(user.username)
+    access_token = create_user_access_token(
+                     data = {"sub": user.username,
+                             "scopes": form_data.scopes}
+                   )
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@app.get("/users/me", response_model=UserBase)
+async def read_users_me(current_user: Annotated[
+                                        User, 
+                                        Depends(get_current_active_user)]):
     return current_user

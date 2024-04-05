@@ -1,10 +1,11 @@
 from typing import Annotated
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, Security
 from sqlmodel import Session, select
 from database import get_session
 from models import (User, UserBase, UserRead, UserCreate, UserPassword,
                     UserActive, UserSuperuser)
-from security import oauth2_scheme, get_password_hash
+from security import (oauth2_scheme, get_password_hash,
+                      get_current_active_user)
 
 router = APIRouter(
     prefix="/admin/users",
@@ -15,7 +16,12 @@ router = APIRouter(
 
 @router.get("/", response_model=list[UserRead])
 async def get_users(
-            token: Annotated[str, Depends(oauth2_scheme)],
+            # token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Security(
+                              get_current_active_user,
+                              scopes=["superuser"])],
             session: Session = Depends(get_session)
           ):
     users = session.exec(select(User)).all()
