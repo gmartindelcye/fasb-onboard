@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
-from decimal import Decimal
-from sqlmodel import SQLModel, Field
+# from decimal import Decimal
+from sqlmodel import SQLModel, Field, Relationship
 
 
 class BankBase(SQLModel):
@@ -22,9 +22,6 @@ class Country(CountryBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
 
-# class CountryRead(Country):
-#     pass
-
 class CurrencyBase(SQLModel):
     name: str = Field(default=None, unique=True, index=True)
     code: str | None = Field(default=None, unique=True, index=True)
@@ -32,7 +29,6 @@ class CurrencyBase(SQLModel):
 
 class Currency(CurrencyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-
 
 
 class UserBase(SQLModel):
@@ -47,7 +43,7 @@ class User(UserBase, table=True):
     token: Optional[str] = Field(default=None)
     is_active: bool = Field(default=True)
     is_superuser: bool = Field(default=False)
-    # projects: list["Project"] = Relationship(back_populates="owner")
+    projects: Optional[list["Project"]] = Relationship(back_populates="owner")
 
 
 class UserRead(UserBase):
@@ -70,14 +66,20 @@ class UserSuperuser(SQLModel):
     is_superuser: bool = Field(default=False)
 
 
-# class Project(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(default=None, unique=True, index=True)
-#     description: Optional[str] = Field(default=None)
-#     owner_id: int = Field(default=None, foreign_key="user.id")
-#     owner: User = Relationship(back_populates="projects")
-#     tree: Optional[str] = Field(default=None)
-#     accounts: list["Account"] = Relationship(back_populates="project")
+class ProjectBase(SQLModel):
+    name: str = Field(default=None, unique=True, index=True)
+    description: Optional[str] = Field(default=None)
+    creation_date: datetime = Field(default=datetime.now())
+    tree: Optional[str] = Field(default=None)
+
+
+class Project(ProjectBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(default=None, unique=True, index=True)
+    description: Optional[str] = Field(default=None)
+    owner_id: int = Field(default=None, foreign_key="user.id")
+    owner: User = Relationship(back_populates="projects")
+#     accounts: Optional[list["Account"]] = Relationship(back_populates="project")
 
 
 # class Partner(SQLModel, table=True):

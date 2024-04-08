@@ -3,8 +3,10 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Country, CountryBase
-from security import oauth2_scheme
+from models import Country, CountryBase, User
+from security import (oauth2_scheme,
+                      get_current_active_user,
+                      get_current_super_user)
 
 
 router = APIRouter(
@@ -17,6 +19,9 @@ router = APIRouter(
 @router.get("/", response_model=list[Country])
 async def get_countries(
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     countries = session.exec(select(Country)).all()
@@ -27,6 +32,9 @@ async def get_countries(
 async def create_country(
             country: CountryBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     statement = select(Country).where(Country.name == country.name)
@@ -44,6 +52,9 @@ async def create_country(
 async def get_country(
             country_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     country = session.get(Country, country_id)
@@ -57,6 +68,9 @@ async def update_country(
             country_id: int,
             country: CountryBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     db_country = session.get(Country, country_id)
@@ -75,6 +89,9 @@ async def update_country(
 async def delete_country(
             country_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     country = session.get(Country, country_id)
@@ -88,6 +105,9 @@ async def delete_country(
 @router.get("/admin/populate")
 async def populate_initial_countries(
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_super_user)],
             session: Session = Depends(get_session)
           ):
     from populate.countries import populate_countries

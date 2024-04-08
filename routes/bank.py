@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Bank, BankBase
-from security import oauth2_scheme
+from models import Bank, BankBase, User
+from security import oauth2_scheme, get_current_active_user
 
 
 router = APIRouter(
@@ -17,6 +17,9 @@ router = APIRouter(
 @router.get("/", response_model=list[Bank])
 async def get_banks(
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     banks = session.exec(select(Bank)).all()
@@ -27,6 +30,9 @@ async def get_banks(
 async def create_bank(
             bank: BankBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     statement = select(Bank).where(Bank.name == bank.name)
@@ -44,6 +50,9 @@ async def create_bank(
 async def get_bank(
             bank_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     bank = session.get(Bank, bank_id)
@@ -57,6 +66,9 @@ async def update_bank(
             bank_id: int,
             bank: BankBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     db_bank = session.get(Bank, bank_id)
@@ -75,6 +87,9 @@ async def update_bank(
 async def delete_bank(
             bank_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     bank = session.get(Bank, bank_id)

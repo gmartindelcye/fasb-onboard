@@ -123,9 +123,19 @@ def get_current_user(
 
 async def get_current_active_user(
             current_user: Annotated[
-                            User, 
+                            User,
                             Security(get_current_user, scopes=["me"])],
           ):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+async def get_current_super_user(
+            current_user: Annotated[
+                            User,
+                            Security(get_current_user, scopes=["superuser"])],
+          ):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=400, detail="Not superuser")
     return current_user

@@ -7,10 +7,11 @@ from routes.currency import router as currency_router
 from routes.bank import router as bank_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
-from models import User, UserBase
+from models import User, UserBase, UserRead
 from security import (Token, get_authenticated_user,
                       create_user_access_token,
-                      get_current_active_user)
+                      get_current_active_user,
+                      get_current_super_user)
 
 
 @asynccontextmanager
@@ -46,14 +47,19 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    scopes = form_data.scopes
+    if user.is_superuser and not "superuser" in form_data.scopes:
+        scopes.append("superuser")
+    elif not "me" in form_data.scopes:
+        scopes.append("me")
     access_token = create_user_access_token(
                      data = {"sub": user.username,
-                             "scopes": form_data.scopes}
+                             "scopes": scopes}
                    )
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me", response_model=UserBase)
+@app.get("/users/me", response_model=UserRead)
 async def read_users_me(current_user: Annotated[
                                         User, 
                                         Depends(get_current_active_user)]):

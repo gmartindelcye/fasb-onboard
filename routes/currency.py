@@ -3,8 +3,10 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Currency, CurrencyBase
-from security import oauth2_scheme
+from models import Currency, CurrencyBase, User
+from security import (oauth2_scheme,
+                      get_current_active_user,
+                      get_current_super_user)
 
 
 router = APIRouter(
@@ -17,6 +19,9 @@ router = APIRouter(
 @router.get("/", response_model=list[Currency])
 async def get_currencies(
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     currencies = session.exec(select(Currency)).all()
@@ -27,6 +32,9 @@ async def get_currencies(
 async def create_currency(
             currency: CurrencyBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     statement = select(Currency).where(Currency.name == currency.name)
@@ -44,6 +52,9 @@ async def create_currency(
 async def get_currency(
             currency_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     currency = session.get(Currency, currency_id)
@@ -57,6 +68,9 @@ async def update_currency(
             currency_id: int,
             currency: CurrencyBase,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     db_currency = session.get(Currency, currency_id)
@@ -75,6 +89,9 @@ async def update_currency(
 async def delete_currency(
             currency_id: int,
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_active_user)],
             session: Session = Depends(get_session)
           ):
     currency = session.get(Currency, currency_id)
@@ -88,6 +105,9 @@ async def delete_currency(
 @router.get("/admin/populate")
 async def populate_initial_currencies(
             token: Annotated[str, Depends(oauth2_scheme)],
+            current_user: Annotated[
+                            User,
+                            Depends(get_current_super_user)],
             session: Session = Depends(get_session)
           ):
     from populate.currencies import populate_currencies
