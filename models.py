@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime
+
 # from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -77,7 +78,9 @@ class Project(ProjectBase, table=True):
     tree: Optional[str] = Field(default="")
     owner_id: int = Field(default=None, foreign_key="user.id")
     owner: User = Relationship(back_populates="projects")
-#     accounts: Optional[list["Account"]] = Relationship(back_populates="project")
+    accounts: Optional[list["Account"]] = Relationship(
+        back_populates="project"
+    )
 
 
 # class Partner(SQLModel, table=True):
@@ -93,19 +96,22 @@ class Project(ProjectBase, table=True):
 #     account: "Account" = Relationship(back_populates="partners")
 
 
-# class Account(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(default=None, unique=True, index=True)
-#     description: Optional[str] = Field(default=None)
-#     initial_date: datetime | None = Field(default=None)
-#     account_number: str = Field(default=None, unique=True, index=True)
-#     alias: str = Field(default=None)
-#     project_id: int = Field(default=None, foreign_key="project.id")
-#     project: Project = Relationship(back_populates="accounts")
-#     bank_id: int = Field(default=None, foreign_key="bank.id")
-#     bank: Bank = Relationship(back_populates="accounts")
-#     currency_id: int = Field(default=None, foreign_key="currency.id")
-#     currency: Currency = Relationship(back_populates="accounts")
-#     country_id: int = Field(default=None, foreign_key="country.id")
-#     country: Country = Relationship(back_populates="accounts")
-#     partners: list[Partner] = Relationship(back_populates="partners")
+class AccountBase(SQLModel):
+    name: str = Field(default=None, unique=True, index=True)
+    description: Optional[str] = Field(default=None)
+    initial_date: datetime | None = Field(default=None)
+    account_number: str = Field(default=None, unique=True, index=True)
+    alias: str = Field(default=None)
+
+
+class Account(AccountBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    project_id: int = Field(foreign_key="project.id")
+    project: Project = Relationship(back_populates="accounts")
+    bank_id: int = Field(foreign_key="bank.id")
+    bank: Bank = Relationship()
+    currency_id: int = Field(foreign_key="currency.id")
+    currency: Currency = Relationship()
+    country_id: int = Field(foreign_key="country.id")
+    country: Country = Relationship()
+    # partners: Optional[list["Partner"]] = Relationship(back_populates="account")
