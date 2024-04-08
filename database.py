@@ -1,10 +1,11 @@
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, create_engine
 
 
 from settings import DATABASE_URL
 
 
-engine = create_engine(DATABASE_URL, echo=False) # change to False for production
+engine = create_engine(DATABASE_URL, echo=True)
+# change to False for production
 
 
 def init_db(session: Session) -> None:
@@ -21,4 +22,3 @@ def init_db(session: Session) -> None:
 def get_session() -> Session:
     with Session(engine) as session:
         yield session
-

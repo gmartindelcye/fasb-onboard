@@ -69,14 +69,12 @@ class UserSuperuser(SQLModel):
 class ProjectBase(SQLModel):
     name: str = Field(default=None, unique=True, index=True)
     description: Optional[str] = Field(default=None)
-    creation_date: datetime = Field(default=datetime.now())
-    tree: Optional[str] = Field(default=None)
 
 
 class Project(ProjectBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(default=None, unique=True, index=True)
-    description: Optional[str] = Field(default=None)
+    creation_date: datetime = Field(default=datetime.now())
+    tree: Optional[str] = Field(default="")
     owner_id: int = Field(default=None, foreign_key="user.id")
     owner: User = Relationship(back_populates="projects")
 #     accounts: Optional[list["Account"]] = Relationship(back_populates="project")

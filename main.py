@@ -5,6 +5,7 @@ from routes.country import router as country_router
 from routes.user import router as user_router
 from routes.currency import router as currency_router
 from routes.bank import router as bank_router
+from routes.project import router as project_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
 from models import User, UserBase, UserRead
@@ -26,6 +27,7 @@ app.include_router(user_router)
 app.include_router(country_router)
 app.include_router(currency_router)
 app.include_router(bank_router)
+app.include_router(project_router)
 
 
 @app.get("/ping")
@@ -59,8 +61,4 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me", response_model=UserRead)
-async def read_users_me(current_user: Annotated[
-                                        User, 
-                                        Depends(get_current_active_user)]):
-    return current_user
+
