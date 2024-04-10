@@ -1,7 +1,8 @@
 from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from routes.country import router as country_router
+from fastapi.openapi.utils import get_openapi
 from routes.user import router as user_router
+from routes.country import router as country_router
 from routes.currency import router as currency_router
 from routes.bank import router as bank_router
 from routes.project import router as project_router
@@ -14,6 +15,13 @@ from security import (
     get_authenticated_user,
     create_user_access_token,
 )
+from settings import (
+    APP_NAME,
+    APP_VERSION,
+    APP_SUMMARY,
+    APP_DESCRIPTION,
+)
+
 
 
 @asynccontextmanager
@@ -61,3 +69,22 @@ async def login_for_access_token(
         data={"sub": user.username, "scopes": scopes}
     )
     return Token(access_token=access_token, token_type="bearer")
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=APP_NAME,
+        version=APP_VERSION,
+        description=APP_DESCRIPTION,
+        routes=app.routes,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url" : "https://portal.phalkons.com/assets/logo-dae52d9a.png"
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
