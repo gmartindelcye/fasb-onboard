@@ -18,10 +18,8 @@ from security import (
 from settings import (
     APP_NAME,
     APP_VERSION,
-    APP_SUMMARY,
     APP_DESCRIPTION,
 )
-
 
 
 @asynccontextmanager
@@ -81,7 +79,7 @@ def custom_openapi():
         routes=app.routes,
     )
     openapi_schema["info"]["x-logo"] = {
-        "url" : "https://portal.phalkons.com/assets/logo-dae52d9a.png"
+        "url": "https://portal.phalkons.com/assets/logo-dae52d9a.png"
     }
     app.openapi_schema = openapi_schema
     return app.openapi_schema

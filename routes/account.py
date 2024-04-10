@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Account, AccountBase, AccountCreate, User
+from models import Account, AccountBase, AccountCreate, User, Project
 from security import oauth2_scheme, get_current_active_user
 
 
@@ -13,13 +13,16 @@ router = APIRouter(
 )
 
 
-def verify_project_user(project_id: int, user_id: int, session: Session) -> bool:
+def verify_project_user(
+    project_id: int, user_id: int, session: Session
+) -> bool:
     statement = select(Project).filter(Project.id == project_id)
     project = session.exec(statement).first()
     owner = project.owner
-    if project.id == project_id and owner.id == user:
+    if project.id == project_id and owner.id == user_id:
         return False
     return True
+
 
 def verify_account_project_user(
     account_id: int, project_id: int, user_id: int, session: Session
@@ -47,9 +50,7 @@ async def get_accounts(
     statement = select(Account).filter(Account.project_id == project_id)
 
     if not current_user.is_superuser:
-        if verify_project_user(
-            project_id, current_user.id, session
-        ):
+        if verify_project_user(project_id, current_user.id, session):
             raise HTTPException(status_code=403, detail="Not allowed")
 
     accounts = session.exec(statement).all()
@@ -67,9 +68,7 @@ async def create_account(
     session: Session = Depends(get_session),
 ):
     if not current_user.is_superuser:
-        if verify_project_user(
-            project_id, current_user.id, session
-        ):
+        if verify_project_user(project_id, current_user.id, session):
             raise HTTPException(status_code=403, detail="Not allowed")
     statement = select(Account).filter(Account.name == account.name)
     account_exist = session.exec(statement).first()
@@ -102,9 +101,8 @@ async def get_account(
     session: Session = Depends(get_session),
 ):
     statement = select(Account).filter(
-        Account.id == account_id,
-        Account.project_id == project_id
-        )
+        Account.id == account_id, Account.project_id == project_id
+    )
     if not current_user.is_superuser:
         if verify_account_project_user(
             account_id, project_id, current_user.id, session
@@ -126,9 +124,8 @@ async def update_account(
     session: Session = Depends(get_session),
 ):
     statement = select(Account).filter(
-        Account.id == account_id,
-        Account.project_id == project_id
-        )
+        Account.id == account_id, Account.project_id == project_id
+    )
     if not current_user.is_superuser:
         if verify_account_project_user(
             account_id, project_id, current_user.id, session
@@ -155,9 +152,8 @@ async def delete_account(
     session: Session = Depends(get_session),
 ):
     statement = select(Account).filter(
-        Account.id == account_id,
-        Account.project_id == project_id
-        )
+        Account.id == account_id, Account.project_id == project_id
+    )
     if not current_user.is_superuser:
         if verify_account_project_user(
             account_id, project_id, current_user.id, session

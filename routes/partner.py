@@ -31,7 +31,7 @@ async def get_partners(
             raise HTTPException(status_code=403, detail="Not allowed")
 
     account = session.exec(statement).first()
-    if not account or account.project.id!= project_id:
+    if not account or account.project.id != project_id:
         raise HTTPException(status_code=404, detail="Account not found")
     return account.partners
 
@@ -54,7 +54,7 @@ async def create_partner(
             raise HTTPException(status_code=403, detail="Not allowed")
 
     account = session.exec(statement).first()
-    if not account or account.project.id!= project_id:
+    if not account or account.project.id != project_id:
         raise HTTPException(status_code=404, detail="Account not found")
     partner_exist = session.exec(statement).first()
     if partner_exist:
@@ -89,7 +89,7 @@ async def get_partner(
             raise HTTPException(status_code=403, detail="Not allowed")
 
     account = session.exec(statement).first()
-    if not account or account.project.id!= project_id:
+    if not account or account.project.id != project_id:
         raise HTTPException(status_code=404, detail="Account not found")
     statement = select(Partner).filter(
         Partner.account_id == account_id,
@@ -119,7 +119,7 @@ async def update_partner(
             raise HTTPException(status_code=403, detail="Not allowed")
 
     account = session.exec(statement).first()
-    if not account or account.project.id!= project_id:
+    if not account or account.project.id != project_id:
         raise HTTPException(status_code=404, detail="Account not found")
     statement = select(Partner).filter(
         Partner.account_id == account_id,
@@ -154,7 +154,7 @@ async def delete_partner(
             raise HTTPException(status_code=403, detail="Not allowed")
 
     account = session.exec(statement).first()
-    if not account or account.project.id!= project_id:
+    if not account or account.project.id != project_id:
         raise HTTPException(status_code=404, detail="Account not found")
     partner = session.exec(statement).first()
     if not partner:
