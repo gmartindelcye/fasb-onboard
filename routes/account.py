@@ -8,9 +8,33 @@ from security import oauth2_scheme, get_current_active_user
 
 router = APIRouter(
     prefix="/accounts",
-    tags=["accounts", "account"],
+    tags=["accounts"],
     responses={404: {"description": "Not found"}},
 )
+
+
+def verify_project_user(project_id: int, user_id: int, session: Session) -> bool:
+    statement = select(Project).filter(Project.id == project_id)
+    project = session.exec(statement).first()
+    owner = project.owner
+    if project.id == project_id and owner.id == user:
+        return False
+    return True
+
+def verify_account_project_user(
+    account_id: int, project_id: int, user_id: int, session: Session
+) -> bool:
+    statement = select(Account).filter(Account.id == account_id)
+    account = session.exec(statement).first()
+    project = account.project
+    owner = project.owner
+    if (
+        account.id == account_id
+        and project.id == project_id
+        and owner.id == user_id
+    ):
+        return False
+    return True
 
 
 @router.get("/{project_id}", response_model=list[Account])
@@ -20,14 +44,17 @@ async def get_accounts(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ):
-    if current_user.is_superuser:
-        statement = select(Account).filter(Account.project_id == project_id)
-    else:
-        statement = select(Account).filter(
-            Account.project.owner_id == current_user.id,
-            Account.project_id == project_id,
-        )
+    statement = select(Account).filter(Account.project_id == project_id)
+
+    if not current_user.is_superuser:
+        if verify_project_user(
+            project_id, current_user.id, session
+        ):
+            raise HTTPException(status_code=403, detail="Not allowed")
+
     accounts = session.exec(statement).all()
+    if not accounts:
+        raise HTTPException(status_code=404, detail="Account not found")
     return accounts
 
 
@@ -39,16 +66,12 @@ async def create_account(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ):
-    if current_user.is_superuser:
-        statement = select(Account).filter(
-            Account.name == account.name, Account.project_id == project_id
-        )
-    else:
-        statement = select(Account).filter(
-            Account.name == account.name,
-            Account.project_id == project_id,
-            Account.project.owner_id == current_user.id,
-        )
+    if not current_user.is_superuser:
+        if verify_project_user(
+            project_id, current_user.id, session
+        ):
+            raise HTTPException(status_code=403, detail="Not allowed")
+    statement = select(Account).filter(Account.name == account.name)
     account_exist = session.exec(statement).first()
     if account_exist:
         raise HTTPException(status_code=400, detail="Account already exists")
@@ -78,17 +101,15 @@ async def get_account(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ):
-    if current_user.is_superuser:
-        statement = select(Account).filter(
-            Account.id == account_id,
-            Account.project_id == project_id,
+    statement = select(Account).filter(
+        Account.id == account_id,
+        Account.project_id == project_id
         )
-    else:
-        statement = select(Account).filter(
-            Account.id == account_id,
-            Account.project_id == project_id,
-            Account.project.owner_id == current_user.id,
-        )
+    if not current_user.is_superuser:
+        if verify_account_project_user(
+            account_id, project_id, current_user.id, session
+        ):
+            raise HTTPException(status_code=403, detail="Not allowed")
     account = session.exec(statement).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -104,14 +125,15 @@ async def update_account(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ):
-    if current_user.is_superuser:
-        statement = select(Account).filter(Account.id == account_id)
-    else:
-        statement = select(Account).filter(
-            Account.id == account_id,
-            Account.project_id == project_id,
-            Account.project.owner_id == current_user.id,
+    statement = select(Account).filter(
+        Account.id == account_id,
+        Account.project_id == project_id
         )
+    if not current_user.is_superuser:
+        if verify_account_project_user(
+            account_id, project_id, current_user.id, session
+        ):
+            raise HTTPException(status_code=403, detail="Not allowed")
     db_account = session.exec(statement).first()
     if not db_account:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -132,14 +154,15 @@ async def delete_account(
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ):
-    if current_user.is_superuser:
-        statement = select(Account).filter(Account.id == account_id)
-    else:
-        statement = select(Account).filter(
-            Account.id == account_id,
-            Account.project_id == project_id,
-            Account.project.owner_id == current_user.id,
+    statement = select(Account).filter(
+        Account.id == account_id,
+        Account.project_id == project_id
         )
+    if not current_user.is_superuser:
+        if verify_account_project_user(
+            account_id, project_id, current_user.id, session
+        ):
+            raise HTTPException(status_code=403, detail="Not allowed")
     account = session.exec(statement).first()
     if not account:
         raise HTTPException(status_code=404, detail="account not found")
