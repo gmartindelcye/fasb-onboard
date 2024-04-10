@@ -6,6 +6,7 @@ from routes.currency import router as currency_router
 from routes.bank import router as bank_router
 from routes.project import router as project_router
 from routes.account import router as account_router
+from routes.partner import router as partner_router
 from contextlib import asynccontextmanager
 from populate.first_user import create_first_user
 from security import (
@@ -29,6 +30,7 @@ app.include_router(currency_router)
 app.include_router(bank_router)
 app.include_router(project_router)
 app.include_router(account_router)
+app.include_router(partner_router)
 
 
 @app.get("/ping")

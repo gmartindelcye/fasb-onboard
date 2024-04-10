@@ -83,25 +83,25 @@ class Project(ProjectBase, table=True):
     )
 
 
-# class PartnerBase(SQLModel):
-#     name: str = Field(default=None, unique=True, index=True)
-#     description: Optional[str] = Field(default=None)
-#     percentage: Decimal = Field(
-#                                 default=Decimal(0.0),
-#                                 max_digits=5,
-#                                 decimal_places=2
-#                           )
+class PartnerBase(SQLModel):
+    name: str = Field(default=None, unique=True, index=True)
+    description: Optional[str] = Field(default=None)
+    percentage: Decimal = Field(
+                                default=Decimal(0.0),
+                                max_digits=5,
+                                decimal_places=2
+                          )
 
 
-# class PartnerCreate(PartnerBase):
-#     account_id: int = Field(default=None, foreign_key="account.id")
+class PartnerCreate(PartnerBase):
+    account_id: int = Field(default=None, foreign_key="account.id")
 
 
 
-# class Partner(PartnerBase, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     account_id: int = Field(default=None, foreign_key="account.id")
-#     account: "Account" = Relationship(back_populates="partners")
+class Partner(PartnerBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    account_id: int = Field(default=None, foreign_key="account.id")
+    account: "Account" = Relationship(back_populates="partners")
 
 
 class AccountBase(SQLModel):
