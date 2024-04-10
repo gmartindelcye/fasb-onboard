@@ -24,7 +24,7 @@ async def get_accounts(
         statement = select(Account).filter(Account.project_id == project_id)
     else:
         statement = select(Account).filter(
-            Account.owner_id == current_user.id,
+            Account.project.owner_id == current_user.id,
             Account.project_id == project_id,
         )
     accounts = session.exec(statement).all()
@@ -46,8 +46,8 @@ async def create_account(
     else:
         statement = select(Account).filter(
             Account.name == account.name,
-            Account.owner_id == current_user.id,
             Account.project_id == project_id,
+            Account.project.owner_id == current_user.id,
         )
     account_exist = session.exec(statement).first()
     if account_exist:
@@ -58,6 +58,7 @@ async def create_account(
         initial_date=account.initial_date,
         account_number=account.account_number,
         alias=account.alias,
+        amount=account.amount,
         bank_id=account.bank_id,
         currency_id=account.currency_id,
         country_id=account.country_id,
@@ -78,10 +79,15 @@ async def get_account(
     session: Session = Depends(get_session),
 ):
     if current_user.is_superuser:
-        statement = select(Account).filter(Account.id == account_id)
+        statement = select(Account).filter(
+            Account.id == account_id,
+            Account.project_id == project_id,
+        )
     else:
         statement = select(Account).filter(
-            Account.id == account_id, Account.owner_id == current_user.id
+            Account.id == account_id,
+            Account.project_id == project_id,
+            Account.project.owner_id == current_user.id,
         )
     account = session.exec(statement).first()
     if not account:
@@ -102,7 +108,9 @@ async def update_account(
         statement = select(Account).filter(Account.id == account_id)
     else:
         statement = select(Account).filter(
-            Account.id == account_id, Account.owner_id == current_user.id
+            Account.id == account_id,
+            Account.project_id == project_id,
+            Account.project.owner_id == current_user.id,
         )
     db_account = session.exec(statement).first()
     if not db_account:
@@ -128,7 +136,9 @@ async def delete_account(
         statement = select(Account).filter(Account.id == account_id)
     else:
         statement = select(Account).filter(
-            Account.id == account_id, Account.owner_id == current_user.id
+            Account.id == account_id,
+            Account.project_id == project_id,
+            Account.project.owner_id == current_user.id,
         )
     account = session.exec(statement).first()
     if not account:

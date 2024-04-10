@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Annotated
 from datetime import datetime
 
-# from decimal import Decimal
+from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
 
 
@@ -83,15 +83,23 @@ class Project(ProjectBase, table=True):
     )
 
 
-# class Partner(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
+# class PartnerBase(SQLModel):
 #     name: str = Field(default=None, unique=True, index=True)
 #     description: Optional[str] = Field(default=None)
 #     percentage: Decimal = Field(
 #                                 default=Decimal(0.0),
-#                                 max_digits=6,
+#                                 max_digits=5,
 #                                 decimal_places=2
 #                           )
+
+
+# class PartnerCreate(PartnerBase):
+#     account_id: int = Field(default=None, foreign_key="account.id")
+
+
+
+# class Partner(PartnerBase, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
 #     account_id: int = Field(default=None, foreign_key="account.id")
 #     account: "Account" = Relationship(back_populates="partners")
 
@@ -102,6 +110,11 @@ class AccountBase(SQLModel):
     initial_date: datetime | None = Field(default=None)
     account_number: str = Field(default=None, unique=True, index=True)
     alias: str = Field(default=None)
+    amount: Annotated[Decimal, Field(
+                                default=0,
+                                max_digits=12,
+                                decimal_places=2
+                          )]
 
 
 class AccountCreate(AccountBase):
@@ -121,4 +134,4 @@ class Account(AccountBase, table=True):
     currency: Currency = Relationship()
     country_id: int = Field(foreign_key="country.id")
     country: Country = Relationship()
-    # partners: Optional[list["Partner"]] = Relationship(back_populates="account")
+    partners: Optional[list["Partner"]] = Relationship(back_populates="account")
