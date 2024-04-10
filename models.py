@@ -104,6 +104,13 @@ class AccountBase(SQLModel):
     alias: str = Field(default=None)
 
 
+class AccountCreate(AccountBase):
+    project_id: int
+    bank_id: int
+    currency_id: int
+    country_id: int
+
+
 class Account(AccountBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     project_id: int = Field(foreign_key="project.id")

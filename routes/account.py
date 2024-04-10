@@ -2,12 +2,12 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlmodel import select, Session
 from database import get_session
-from models import Account, AccountBase, User
+from models import Account, AccountBase, AccountCreate, User
 from security import oauth2_scheme, get_current_active_user
 
 
 router = APIRouter(
-    prefix="/accounts/account",
+    prefix="/accounts",
     tags=["accounts", "account"],
     responses={404: {"description": "Not found"}},
 )
@@ -31,10 +31,10 @@ async def get_accounts(
     return accounts
 
 
-@router.post("/{project_id}", response_model=AccountBase)
+@router.post("/{project_id}", response_model=Account)
 async def create_account(
     project_id: int,
-    account: AccountBase,
+    account: AccountCreate,
     token: Annotated[str, Depends(oauth2_scheme)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
@@ -58,9 +58,9 @@ async def create_account(
         initial_date=account.initial_date,
         account_number=account.account_number,
         alias=account.alias,
-        bank=account.bank,
-        currency=account.currency,
-        country=account.country,
+        bank_id=account.bank_id,
+        currency_id=account.currency_id,
+        country_id=account.country_id,
         project_id=project_id,
     )
     session.add(account)
