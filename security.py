@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from sqlmodel import Session, select
 from pydantic import BaseModel, ValidationError
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 from settings import settings
 from database import engine
 from models import User
@@ -35,15 +35,15 @@ class TokenData(BaseModel):
     scopes: list[str] = []
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_hash = PasswordHash.recommended()
 
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_hash.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return pwd_hash.hash(password)
 
 
 def get_user(username: str) -> User:

@@ -3,7 +3,8 @@ import warnings
 
 from main import app
 
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="passlib.utils") 
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.filterwarnings("ignore", module="passlib")
 
 client = TestClient(app)
 
