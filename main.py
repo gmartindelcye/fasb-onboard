@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 from routes.user import router as user_router
 from routes.country import router as country_router
 from routes.currency import router as currency_router
@@ -21,6 +22,12 @@ from settings import (
     APP_DESCRIPTION,
 )
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +36,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(user_router)
 app.include_router(country_router)
